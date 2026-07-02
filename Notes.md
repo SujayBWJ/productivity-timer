@@ -1,8 +1,24 @@
 # React Learning Journal
 
+# Table of Contents
+
+1.  React Project Structure
+2.  Components
+3.  JSX
+4.  Rendering
+5.  State
+6.  Derived State
+7.  Event Handling
+8.  Introduction to Side Effects (`setInterval` & Closures)
+9.  Key React Principles
+
+------------------------------------------------------------------------
+
+# 1. React Project Structure
+
 ## Understanding `main.jsx`
 
-```jsx
+``` jsx
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
@@ -17,413 +33,425 @@ createRoot(document.getElementById("root")).render(
 
 ### What is `main.jsx`?
 
-`main.jsx` is the entry point of the React application.
+`main.jsx` is the entry point of a React application.
 
-When the application starts, this file is executed first.
+Its job is to:
 
-Its job is to tell React:
+-   Create a React Root.
+-   Render the root component (`App`) inside the `root` div.
 
-> "Find the place where I should display my application and render it there."
+### Rendering Flow
 
----
-
-### Understanding `createRoot()`
-
-```jsx
-createRoot(document.getElementById("root"))
-```
-
-This line does two things:
-
-1. Finds the HTML element with the id `root` inside `index.html`.
-
-```html
-<div id="root"></div>
-```
-
-2. Creates a React Root (or React workspace) inside that div.
-
-From this point onwards, React controls everything inside this `root` div.
-
----
-
-### Understanding `.render()`
-
-```jsx
-.render(
-    <App />
-)
-```
-
-This tells React:
-
-> Render the `App` component inside the React Root.
-
-`<App />` is **not HTML**.
-
-It represents the `App` component.
-
-Internally, React executes the `App()` function and renders whatever JSX it returns.
-
----
-
-### Complete Rendering Flow
-
-```
+``` text
 Browser loads index.html
-
         ↓
-
 <div id="root"></div>
-
         ↓
-
 main.jsx executes
-
         ↓
-
 createRoot()
-
         ↓
-
-React creates a workspace inside the root div
-
+React creates a React Root
         ↓
-
 render(<App />)
-
         ↓
-
-React calls App()
-
+React executes App()
         ↓
-
 App returns JSX
-
         ↓
-
-React converts JSX into HTML
-
+React creates the UI
         ↓
-
 Browser displays the UI
 ```
 
----
+------------------------------------------------------------------------
 
-### Mental Model
+# 2. Components
 
-HTML is ultimately responsible for displaying everything on the webpage.
+A React component is simply a JavaScript function that returns JSX.
 
-React doesn't replace HTML.
-
-Instead, React generates HTML (from JSX) and places it inside the `root` div.
-
-Everything visible in the React application exists inside this single div.
-
----
-
-# Understanding `App.jsx`
-
-The `App` component is the root component of the application.
-
-Every React component is simply a JavaScript function that returns JSX.
-
-```jsx
+``` jsx
 function App() {
-    return (
-        <h1>Hello</h1>
-    );
+  return (
+    <h1>Hello</h1>
+  );
 }
 ```
 
-When React renders `<App />`, it actually executes:
+When React encounters
 
-```jsx
+``` jsx
+<App />
+```
+
+it internally executes
+
+``` jsx
 App();
 ```
 
 Whatever JSX is returned becomes the UI.
 
----
+------------------------------------------------------------------------
 
-# JSX
+# 3. JSX
 
 JSX stands for **JavaScript XML**.
 
-It allows us to write HTML-like syntax inside JavaScript.
+Although it looks like HTML, it is actually JavaScript syntax that React
+converts into DOM elements.
 
-Example:
+## `className`
 
-```jsx
-return (
-    <h1>Hello World</h1>
-);
-```
+JavaScript already has the reserved keyword `class`.
 
-Although it looks like HTML, it is actually JavaScript.
+Therefore React uses
 
-React later converts this JSX into normal HTML.
-
----
-
-## Why `className` instead of `class`?
-
-JavaScript already has a reserved keyword:
-
-```javascript
-class
-```
-
-Since JSX is JavaScript, React cannot reuse this keyword for HTML classes.
-
-Instead, React uses:
-
-```jsx
+``` jsx
 className="container"
 ```
 
-When rendered, React automatically converts it into:
+which becomes
 
-```html
+``` html
 class="container"
 ```
 
----
+in the browser.
 
-# Understanding Imports
+------------------------------------------------------------------------
 
-```jsx
-import { useState } from "react";
-```
+## Curly Braces `{}`
 
-This means:
-
-> Import the `useState` Hook from the React library.
-
-Other imports work similarly.
-
-```jsx
-import heroImg from "./assets/hero.png";
-```
-
-imports an image.
-
-```jsx
-import "./App.css";
-```
-
-imports the stylesheet.
-
----
-
-# State
-
-Suppose we write:
-
-```javascript
-let count = 0;
-```
-
-Now,
-
-```javascript
-count++;
-```
-
-changes the value to `1`.
-
-JavaScript knows the value changed.
-
-However, React does **not** know that the UI should update.
-
-The webpage will still display the old value.
-
-React solves this problem using **State**.
-
-Instead of:
-
-```javascript
-let count = 0;
-```
-
-we write:
-
-```jsx
-const [count, setCount] = useState(0);
-```
-
-Here,
-
-- `count` → current state value
-- `setCount()` → function used to update the state
-- `0` → initial value (used only during the first render)
-
-If we want to change the value,
-
-instead of
-
-```javascript
-count = 4;
-```
-
-we write
-
-```jsx
-setCount(4);
-```
-
-Calling `setCount()` tells React:
-
-> "The UI depends on this value. It has changed. Please render the component again."
-
----
-
-# What Happens When State Changes?
-
-Suppose we have:
-
-```jsx
-const [count, setCount] = useState(0);
-```
-
-When
-
-```jsx
-setCount(count + 1);
-```
-
-is executed,
-
-the following happens:
-
-```
-State changes
-
-↓
-
-React notices the change
-
-↓
-
-React executes App() again
-
-↓
-
-App returns new JSX
-
-↓
-
-React compares the new JSX with the previous JSX
-
-↓
-
-Only the changed DOM elements are updated
-
-↓
-
-Browser displays the updated UI
-```
-
-This process is called **Re-rendering**.
-
----
-
-# Important Note
-
-The entire component function executes again during a re-render.
-
-For example,
-
-```jsx
-function App() {
-    console.log("Rendering...");
-}
-```
-
-This `console.log()` executes:
-
-- During the initial render
-- During every re-render
-
-However,
-
-React **does not rebuild the entire webpage**.
-
-It compares the previous UI with the new UI and updates only the parts that actually changed.
-
----
-
-# Curly Braces `{}`
-
-Inside JSX,
-
-normal HTML is written directly.
-
-Whenever JavaScript needs to be evaluated, it is written inside curly braces.
+Inside JSX, curly braces indicate that JavaScript should be evaluated.
 
 Example:
 
-```jsx
+``` jsx
 const name = "Suj";
 
 <h1>{name}</h1>
-```
-
-Output:
-
-```
-Suj
-```
-
-Another example:
-
-```jsx
 <h1>{5 + 10}</h1>
 ```
 
-Output:
+React evaluates the expression inside `{}` and inserts the result into
+the UI.
 
+------------------------------------------------------------------------
+
+## Why `return (...)`?
+
+### Reason 1
+
+`{}` represent objects.
+
+``` javascript
+return {
+  name: "Sujay"
+};
 ```
-15
+
+`()`
+
+groups an expression.
+
+JSX is an expression.
+
+### Reason 2
+
+JavaScript follows Automatic Semicolon Insertion (ASI).
+
+Incorrect:
+
+``` javascript
+return
+<h1>Hello</h1>;
 ```
 
-Curly braces tell React:
+JavaScript interprets it as
 
-> Evaluate this JavaScript expression and place the result here.
+``` javascript
+return;
 
----
+<h1>Hello</h1>;
+```
 
-# Fragment
+Therefore nothing gets returned.
 
-Sometimes a component needs to return multiple elements.
+Correct:
 
-Instead of wrapping everything inside an unnecessary `<div>`, React provides a Fragment.
+``` jsx
+return (
+  <h1>Hello</h1>
+);
+```
 
-```jsx
+------------------------------------------------------------------------
+
+## Fragment
+
+Instead of wrapping everything in an unnecessary `<div>`, React provides
+Fragments.
+
+``` jsx
 <>
-    <h1>Hello</h1>
-    <button>Click</button>
+  <h1>Hello</h1>
+  <button>Click</button>
 </>
 ```
 
-A Fragment groups multiple elements together without creating an extra HTML element in the DOM.
+Fragments group elements without creating an extra DOM node.
 
----
+------------------------------------------------------------------------
 
-# Key Takeaways
+# 4. Rendering
 
-- Every React component is a JavaScript function.
-- Components return JSX.
-- JSX looks like HTML but is actually JavaScript.
-- `main.jsx` is the entry point of the application.
-- `createRoot()` creates a React Root inside the `root` div.
-- `render(<App />)` tells React to render the `App` component.
-- `useState` allows React to remember values between renders.
-- State should always be updated using its setter function.
-- Calling a state setter triggers a re-render.
-- During a re-render, the component function executes again.
-- React compares the old UI with the new UI and updates only what changed.
-- JavaScript expressions inside JSX are written using `{}`.
-- `className` is used instead of `class`.
-- Fragments (`<> </>`) allow multiple elements to be returned without adding extra HTML elements.
+Whenever React renders a component, it executes the component function.
+
+``` jsx
+function App() {
+  console.log("Rendering...");
+}
+```
+
+This runs:
+
+-   Initial render
+-   Every re-render
+
+Calling a state setter causes:
+
+``` text
+State changes
+      ↓
+React executes the component again
+      ↓
+New JSX is created
+      ↓
+React compares old and new UI
+      ↓
+Only changed DOM nodes are updated
+```
+
+------------------------------------------------------------------------
+
+# 5. State
+
+A normal JavaScript variable
+
+``` javascript
+let count = 0;
+```
+
+can change, but React doesn't know that it changed.
+
+Instead we use
+
+``` jsx
+const [count, setCount] = useState(0);
+```
+
+-   `count` → current value
+-   `setCount()` → updates the value
+-   `0` → initial value (used only during the first render)
+
+Never do:
+
+``` javascript
+count = 5;
+```
+
+Instead:
+
+``` jsx
+setCount(5);
+```
+
+------------------------------------------------------------------------
+
+# 6. Derived State
+
+## Don't Store Derived State
+
+One of React's most important principles:
+
+> Store the minimum amount of state possible.
+
+Instead of
+
+``` jsx
+const [minutes, setMinutes] = useState(25);
+const [seconds, setSeconds] = useState(0);
+```
+
+store
+
+``` jsx
+const [timeLeft, setTimeLeft] = useState(1500);
+```
+
+and derive
+
+``` jsx
+const minutes = Math.floor(timeLeft / 60);
+const seconds = timeLeft % 60;
+```
+
+Benefits:
+
+-   Single source of truth
+-   Less state to manage
+-   Prevents inconsistent values
+-   Easier maintenance
+
+------------------------------------------------------------------------
+
+## Formatting Derived Values
+
+``` jsx
+const formattedMinutes =
+  minutes < 10 ? "0" + minutes : minutes;
+
+const formattedSeconds =
+  seconds < 10 ? "0" + seconds : seconds;
+```
+
+Alternative:
+
+``` jsx
+String(minutes).padStart(2, "0");
+```
+
+`padStart(2, "0")` ensures the string has at least two characters by
+adding leading zeroes.
+
+------------------------------------------------------------------------
+
+## Component Flow
+
+``` text
+State
+   ↓
+Derived Values
+   ↓
+Formatted Values
+   ↓
+JSX
+   ↓
+Browser UI
+```
+
+Example:
+
+``` text
+timeLeft
+   ↓
+minutes & seconds
+   ↓
+formattedMinutes & formattedSeconds
+   ↓
+25:00
+```
+
+------------------------------------------------------------------------
+
+# 7. Event Handling
+
+State changes only because something happens.
+
+Examples:
+
+-   Button click
+-   User input
+-   API response
+-   Timer event
+
+Initially,
+
+``` jsx
+const [timeLeft, setTimeLeft] = useState(1500);
+```
+
+is enough to display `25:00`.
+
+`setTimeLeft()` is only required when an event changes the timer.
+
+------------------------------------------------------------------------
+
+# 8. Introduction to Side Effects
+
+## Running the Project
+
+Always run the development server from the project directory (the folder
+containing `package.json`).
+
+``` bash
+npm run dev
+```
+
+------------------------------------------------------------------------
+
+## `setInterval()`
+
+``` javascript
+setInterval(() => {
+  console.log("Hello");
+}, 1000);
+```
+
+This executes the callback every **1000 ms (1 second).**
+
+------------------------------------------------------------------------
+
+## Why can't the Start button update the timer?
+
+``` jsx
+<button onClick={() => setTimeLeft(timeLeft - 1)}>
+```
+
+This executes only once.
+
+A countdown requires repeated execution.
+
+That's why JavaScript provides `setInterval()`.
+
+------------------------------------------------------------------------
+
+## The Closure Problem
+
+Suppose the interval is created when
+
+``` text
+timeLeft = 1500
+```
+
+Later React re-renders with
+
+``` text
+timeLeft = 1499
+```
+
+The interval callback still remembers the value from the render in which
+it was created.
+
+This happens because JavaScript functions remember the variables
+available when they were created.
+
+This behaviour is called a **closure**.
+
+This is the motivation behind learning `useEffect()`.
+
+------------------------------------------------------------------------
+
+# 9. Key React Principles
+
+-   Every React component is a JavaScript function.
+-   Components return JSX.
+-   React executes components during every render.
+-   State is the source of truth.
+-   The UI is derived from state.
+-   Store the minimum amount of state possible.
+-   Don't store derived state.
+-   Derive → Format → Display.
+-   State changes because of events.
+-   React encourages declarative code over imperative code.
