@@ -1,14 +1,14 @@
 import { useState } from "react";
 
 function App() {
-  const [timeLeft, setTimeLeft] = useState(1500);
+  const [timer, setTimer] = useState(1500);
+  let minutes = Math.floor(timer/60);
+  let seconds = timer % 60;
 
-  const minutes = Math.floor(timeLeft / 60);
-  const seconds = timeLeft % 60;
-
-  const formattedMinutes = minutes < 10 ? "0" + minutes : minutes;
-  const formattedSeconds = seconds < 10 ? "0" + seconds : seconds;
-
+  let formattedMinutes = minutes < 10 ? "0" + minutes : minutes;
+  let formattedSeconds = seconds < 10 ? "0" + seconds : seconds;
+  
+  
 //  Another way of writing the above two lines
 /* 
 
